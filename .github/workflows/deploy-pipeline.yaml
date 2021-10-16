@@ -57,4 +57,4 @@ jobs:
           release_name: Release from ${{ github.run_number }}
           body: New release for ${{ github.sha }}.  Release notes on the documentation site
           draft: false
-          prereleases: false
+          prerelease: false
