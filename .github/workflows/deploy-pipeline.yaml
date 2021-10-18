@@ -44,32 +44,21 @@ jobs:
         with:
           name: zipped-bundle
           path: ${{ github.sha }}.zip
-    
-  publish:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Create release
-        id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.github_token }}
-        with:
-          tag_name: ${{ github.run_number }}
-          release_name: Release from ${{ github.run_number }}
-          body: New release for ${{ github.sha }}.  Release notes on the documentation site
-          draft: false
-          prerelease: false
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: zipped-bundle
-      - name: Upload release asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.github_token }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ./${{ github.sha }}.zip
-          asset_name: source_code_with_properties.zip
-          asset_content_type: appplication/zip
+
+  documentation:
+     runs-on: ubuntu-latest
+     needs: lint
+     steps:
+       - name: Checkout code
+         uses: actions/checkout@v2
+       - name: Create a folder for assets
+         run:  mkdir docs
+       - name: Convert markdown to HTMLL
+         uses: docker://pandoc/core:2.9
+         with:
+           args: userguide.md -t html -o docs/index.html
+       - name: Deploy site
+         uses: JamesIves/github-pages-deploy-action@4.1.4
+         with:
+           folder: docs
+           branch: gh-pages
